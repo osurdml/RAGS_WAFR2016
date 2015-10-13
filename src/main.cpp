@@ -30,7 +30,7 @@ int trialNum ;
 
 void DefineGraph(vector< vector<double> > & vertVec, vector< vector<double> > & edgeVec) 
 {
-	ifstream verticesFile("sector_vertices1.txt") ;
+	ifstream verticesFile("../config/sector_vertices1.txt") ;
 
 	cout << "Reading vertices from file..." ;
 	vector<double> v(2) ;
@@ -48,7 +48,7 @@ void DefineGraph(vector< vector<double> > & vertVec, vector< vector<double> > & 
 	}
 	cout << "complete.\n" ;
 
-	ifstream edgesFile("sector_edges1.txt") ;
+	ifstream edgesFile("../config/sector_edges1.txt") ;
 
 	cout << "Reading edges from file..." ;
 	vector<double> e(4) ;
@@ -68,7 +68,7 @@ void DefineGraph(vector< vector<double> > & vertVec, vector< vector<double> > & 
 
 void DefineWorld(vector< vector<bool> > & obstacles, vector< vector<int> > & membership)
 {
-	ifstream obstaclesFile("obstacles.txt") ;
+	ifstream obstaclesFile("../config/obstacles.txt") ;
 
 	cout << "Reading obstacle map from file..." ;
 	vector<bool> obs(25) ;
@@ -90,7 +90,7 @@ void DefineWorld(vector< vector<bool> > & obstacles, vector< vector<int> > & mem
 	}
 	cout << "complete.\n" ;
 
-	ifstream sectorsFile("membership.txt") ;
+	ifstream sectorsFile("../config/membership.txt") ;
 
 	cout << "Reading sector map from file..." ;
 	while (getline(sectorsFile,line))
@@ -138,7 +138,7 @@ vector< vector< double > > makeVertices(double x, double y, int numVerts){
 
 	// Write vertices to txt file
 	stringstream vFileName ;
-	vFileName << "config_files/vertices" << trialNum << ".txt" ;
+	vFileName << "../results/vertices" << trialNum << ".txt" ;
 
 	ofstream vertsFile ;
 	vertsFile.open(vFileName.str().c_str()) ;
@@ -216,7 +216,7 @@ int main()
 		if (bestPaths.size() != 0)
 		{
 			stringstream pFileName ;
-			pFileName << "results/bestPaths" << trialNum << ".txt" ;
+			pFileName << "../results/bestPaths" << trialNum << ".txt" ;
 			
 			ofstream pathsFile ;
 			pathsFile.open(pFileName.str().c_str()) ;
@@ -268,7 +268,7 @@ int main()
 
 		// Write vertices to txt file
 		stringstream cFileName ;
-		cFileName << "results/pathCosts" << trialNum << ".txt" ;
+		cFileName << "../results/pathCosts" << trialNum << ".txt" ;
 		
 		ofstream costsFile ;
 		costsFile.open(cFileName.str().c_str()) ;
