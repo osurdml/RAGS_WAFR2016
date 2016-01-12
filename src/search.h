@@ -72,7 +72,7 @@ vector<Node *> Search::PathSearch(pathOut pType)
 		Node * currentNeighbour ;
 		
 		// Find all neighbours
-		vector<Edge *> neighbours = itsGraph->GetNeighbours(currentNode->GetVertex()) ;
+		vector<Edge *> neighbours = itsGraph->GetNeighbours(currentNode) ;
 
 		// Update neighbours
 		for (ULONG i = 0; i < (ULONG)neighbours.size(); i++)

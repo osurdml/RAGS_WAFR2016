@@ -192,6 +192,7 @@ double DynamicAStar(Graph * graph, Vertex * source, Vertex * goal)
 	return cost ;
 }
 
+
 double OptimalAStar(Graph * graph, Vertex * source, Vertex * goal)
 {
 	// Search using true costs of all edges
@@ -203,16 +204,35 @@ double OptimalAStar(Graph * graph, Vertex * source, Vertex * goal)
 	}
 	
 	//Create search object and perform path search from source to goal
+	clock_t t_start = clock() ;
+	double t_elapse = 0.0 ;
 	Search * testSearch = new Search(graph, source, goal) ;
 	pathOut pType = BEST ;
 	vector<Node *> bestPathsGS = testSearch->PathSearch(pType) ;
-	
+        Node * curNode = bestPathsGS[0]->ReverseList(0) ;
+      	Vertex * curLoc = bestPathsGS[0]->GetVertex() ;
+	curLoc = curNode->GetVertex() ;
 	double cost = 0.0 ;
-	
+        stringstream oFileName ;
+        oFileName << "../results/optimal" << trialNum << ".txt" ;
+        ofstream optimalFile ;
+	optimalFile.open(oFileName.str().c_str()) ;
 	if (bestPathsGS.size() != 0)
 	{
 		cost = bestPathsGS[0]->GetMeanCost() ;
 		cout << "Total cost: " << cost << endl ;
+                while (curNode->GetParent())
+                {
+                        //cout << "Current Location: (" << curLoc->GetX() << "," <<  curLoc->GetY() << ")\n" ;
+                        optimalFile << curLoc->GetX() << "," << curLoc->GetY() << "\n";
+                        
+                        // Move to next vertex and log the cost
+                        curNode = curNode->GetParent() ;
+                        curLoc = curNode->GetVertex() ;
+		        t_elapse = (float)(clock() - t_start)/CLOCKS_PER_SEC ;
+                }
+                optimalFile << curLoc->GetX() << "," << curLoc->GetY() << "\n";
+                optimalFile.close() ;
 	}
 	else
 	{
@@ -229,6 +249,9 @@ double OptimalAStar(Graph * graph, Vertex * source, Vertex * goal)
 	
 	return cost ;
 }
+
+
+
 
 vector<double> executePath(vector< Node*> GSPaths, Graph * searchGraph)
 {
@@ -256,6 +279,10 @@ vector<double> executePath(vector< Node*> GSPaths, Graph * searchGraph)
 
 	// Assign nodes to first vertex
 	curLoc->SetNodes(newNodes) ;
+        stringstream rFileName;
+        rFileName << "../results/ragsPath" << trialNum << ".txt";
+        ofstream ragsFile;
+        ragsFile.open(rFileName.str().c_str(), ios::app);
 	
 	while (curLoc->GetX() != goal->GetX() || curLoc->GetY() != goal->GetY())
 	{
@@ -323,6 +350,10 @@ vector<double> executePath(vector< Node*> GSPaths, Graph * searchGraph)
 		// Clear vectors for next step
 		newNodes.clear() ;
 		nextVerts.clear() ;
+
+                //write loc to file
+                ragsFile << curLoc->GetX()<< "," << curLoc->GetY() << "\n";
+              
 	}
 	
 	cout << "Goal vertex (" << curLoc->GetX() << "," <<  curLoc->GetY() << ") reached! "
@@ -452,7 +483,8 @@ vector<double> executePath(vector< Node*> GSPaths, Graph * searchGraph)
 	totalCost = DynamicAStar(searchGraph, SGPaths[0]->GetVertex(), GSPaths[0]->GetVertex()) ;
 	
 	allCosts.push_back(totalCost) ;
-	
+
+
 	/**********************************************************************************************/
 	// Optimal path cost
 	cout << "Traversing optimal path...\n" ;

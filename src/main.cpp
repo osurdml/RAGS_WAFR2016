@@ -30,7 +30,7 @@ int trialNum ;
 
 void DefineGraph(vector< vector<double> > & vertVec, vector< vector<double> > & edgeVec) 
 {
-	ifstream verticesFile("../config/sector_vertices1.txt") ;
+	ifstream verticesFile("../config/vertices_dom_test.txt") ;
 
 	cout << "Reading vertices from file..." ;
 	vector<double> v(2) ;
@@ -48,7 +48,7 @@ void DefineGraph(vector< vector<double> > & vertVec, vector< vector<double> > & 
 	}
 	cout << "complete.\n" ;
 
-	ifstream edgesFile("../config/sector_edges1.txt") ;
+	ifstream edgesFile("../config/edges_dom_test.txt") ;
 
 	cout << "Reading edges from file..." ;
 	vector<double> e(4) ;
@@ -198,6 +198,7 @@ int main()
 		cout << "Connecting with radius " << radius << endl;
 		//Graph * testGraph = new Graph(vertVec, edgeVec) ;
 		Graph * testGraph = new Graph(vertVec2, radius);
+                //Graph * testGraph = DefineGraph(vertVec2, edgeVec);
 		Vertex * sourceSec = testGraph->GetVertices()[0] ; // top-left sector
 		Vertex * goalSec = testGraph->GetVertices()[testGraph->GetNumVertices()-1] ; // bottom-right sector
 

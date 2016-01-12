@@ -20,6 +20,7 @@ class Graph
 		void SetNumEdges(ULONG nEdges) {numEdges = nEdges ;}
 		
 		vector<Edge *> GetNeighbours(Vertex *) ;
+		vector<Edge *> GetNeighbours(Node *) ;
 		void BasicConnect(vector<double> xGrid, vector<double> yGrid, 
 			vector< vector<double> > & vertices, vector< vector<double> > & edges, int connect) ;
 	private:
@@ -185,7 +186,7 @@ Graph::Graph(vector< vector<bool> > mask, int connect)
 	
 	// Write edges and vertices to file
 	ofstream edgeFile ;
-	edgeFile.open("path_edges.txt") ;
+	edgeFile.open("../results/path_edges.txt") ;
 	for (ULONG i = 0; i < edges.size(); i++)
 	{
 		for (ULONG j = 0; j < edges[i].size(); j++)
@@ -200,7 +201,7 @@ Graph::Graph(vector< vector<bool> > mask, int connect)
 	edgeFile.close() ;
 	
 	ofstream vertFile ;
-	vertFile.open("path_vertices.txt") ;
+	vertFile.open("../results/path_vertices.txt") ;
 	for (ULONG i = 0; i < vertices.size(); i++)
 	{
 		for (ULONG j = 0; j < vertices[i].size(); j++)
@@ -245,6 +246,36 @@ vector<Edge *> Graph::GetNeighbours(Vertex * v)
 	neighbours.resize(k) ;
 	return neighbours ;
 }
+
+vector<Edge *> Graph::GetNeighbours(Node * n) // Do not include parent vertex in list of neighbours
+{
+  vector<Edge *> neighbours ;
+  Vertex * v = n->GetVertex() ;
+
+  for (ULONG i = 0; i < numEdges; i++){
+	double x1 = itsEdges[i]->GetVertex1()->GetX() ;
+	double y1 = itsEdges[i]->GetVertex1()->GetY() ;
+	double x2 = itsEdges[i]->GetVertex2()->GetX() ;
+	double y2 = itsEdges[i]->GetVertex2()->GetY() ;
+  	if (x1 == v->GetX() && y1 == v->GetY()){
+	          bool isNeighbour = true ;
+		  Node * n0 = n ;
+		  while (n0->GetParent()){
+		      	n0 = n0->GetParent() ;
+		  	Vertex * v0 = n0->GetVertex() ;
+				if (x2 == v0->GetX() && y2 == v0->GetY()){
+					isNeighbour = false ;
+					break ;
+				}
+			}
+			if (isNeighbour)
+				neighbours.push_back(itsEdges[i]) ;
+	  }
+  }
+
+  return neighbours ;
+}
+
 
 void Graph::BasicConnect(vector<double> xGrid, vector<double> yGrid, 
 	vector< vector<double> > & vertices, vector< vector<double> > & edges, int connect)
@@ -396,7 +427,7 @@ vector< vector<double> > Graph::RadiusConnect(vector< vector<double> > vertices,
 	
 	// Write edges to txt file
 	stringstream eFileName ;
-	eFileName << "config_files/edges" << trialNum << ".txt" ;
+	eFileName << "../results/edges" << trialNum << ".txt" ;
 	
 	ofstream edgesFile ;
 	edgesFile.open(eFileName.str().c_str()) ;
