@@ -1,6 +1,8 @@
 import sys, random, math, pygame
 import numpy as np
+import matplotlib.pyplot as plt
 from pygame.locals import *
+from sklearn.preprocessing import normalize
 
 
 #constants
@@ -13,6 +15,8 @@ offset = 1
 def main():
         vertices = np.genfromtxt('../results/vertices1.txt', delimiter=',')
         edges = np.genfromtxt('../results/edges1.txt', delimiter=',')
+        variances = edges[:,3]
+        print variances
         ragsPath = np.genfromtxt('../results/ragsPath1.txt', delimiter=',')
         optimalPath = np.genfromtxt('../results/optimal1.txt', delimiter=',')
         vertices = (vertices.astype(int)+offset)*scale
@@ -22,15 +26,26 @@ def main():
         #initialize and prepare screen
         pygame.init()
         screen = pygame.display.set_mode(WINSIZE)
-        white = 255, 240, 200
+        white = 255, 255, 255
         black = 20, 20, 40
         red = 255, 0, 0
         green = 0, 255, 0
         screen.fill(white)
         print optimalPath
+        Greys = plt.get_cmap('Greys')
+
+        norm1 = variances/np.linalg.norm(variances)
+
         for i in range(0,len(edges[:,0])):
             #print vertices[i,:], vertices[edges[i,j],:]
-            pygame.draw.line(screen,black,(vertices[edges[i,0],0], vertices[edges[i,0],1]), (vertices[edges[i,1],0], vertices[edges[i,1],1]))
+            #print norm1[i]*255
+
+            norm1 = (variances[i]-min(variances))/(max(variances)-min(variances))
+            R = (norm1*200).astype(int)
+            G = R
+            B = G
+            thickness = (norm1*3).astype(int)
+            pygame.draw.line(screen,[R,G,B],(vertices[edges[i,0],0], vertices[edges[i,0],1]), (vertices[edges[i,1],0], vertices[edges[i,1],1]), 1)
             pygame.display.update()
         raw_input("Press Enter to continue...")
         for i in range(0,len(optimalPath[:,0])-1):
