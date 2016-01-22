@@ -21,7 +21,7 @@ bool ComputeImprovementProbability(Vertex * A, Vertex * B)
 	vector<Node *> ANodes = A->GetNodes();
 	vector<Node *> BNodes = B->GetNodes();
 	
-	double c_A0 = A->GetCTC() ;
+	double c_A0 = A->GetCTC() ; // need to set up mean and var to come
 	double c_B0 = B->GetCTC() ;
 	double max_3sig = ANodes[0]->GetMeanCTG() + 3*ANodes[0]->GetVarCTG() ;
 	double min_3sig = ANodes[0]->GetMeanCTG() - 3*ANodes[0]->GetVarCTG() ;
@@ -138,13 +138,25 @@ void ResetEdges(Graph * graph)
 	}
 }
 
-double DynamicAStar(Graph * graph, Vertex * source, Vertex * goal)
+double DynamicAStar(Graph * graph, Vertex * source, Vertex * goal) //To avoid looping I need to convert this to get neighbors using nodes or change the vertex get neighbors function
 {
 	double cost = 0.0 ;
 	Vertex * curLoc = source ;
-	
-	clock_t t_start = clock() ;
+        //make curLoc a node
+        
+        clock_t t_start = clock() ;
 	double t_elapse = 0.0 ;
+
+        //Create search object and perform path search from source to goal
+        Search * testSearch = new Search(graph, curLoc, goal) ;
+        pathOut pType = BEST ;
+        vector<Node *> bestPathsGS = testSearch->PathSearch(pType) ;
+        
+        // Reverse path
+        Node * curNode = bestPathsGS[0]->ReverseList(0) ;
+        delete testSearch ;
+        testSearch = 0 ;
+
 	
 	while ((curLoc->GetX() != goal->GetX() || curLoc->GetY() != goal->GetY()) && t_elapse < 5)
 	{
@@ -167,7 +179,9 @@ double DynamicAStar(Graph * graph, Vertex * source, Vertex * goal)
 		Node * bestPathSG = bestPathsGS[0]->ReverseList(0) ;
 		
 		// Step through path and accumulate traversal cost
-		curLoc = bestPathSG->GetParent()->GetVertex() ;
+		//curLoc = bestPathSG->GetParent()->GetVertex() ;
+		curNode = bestPathSG->GetParent() ;
+                curLoc = curNode->GetVertex() ;
 		cost += bestPathSG->GetParent()->GetMeanCost() ;
 		
 		// Delete pointers on the heap
@@ -216,7 +230,7 @@ double OptimalAStar(Graph * graph, Vertex * source, Vertex * goal)
         stringstream oFileName ;
         oFileName << "../results/optimal" << trialNum << ".txt" ;
         ofstream optimalFile ;
-	optimalFile.open(oFileName.str().c_str()) ;
+	optimalFile.open(oFileName.str().c_str(), ios::app) ;
 	if (bestPathsGS.size() != 0)
 	{
 		cost = bestPathsGS[0]->GetMeanCost() ;
@@ -232,13 +246,13 @@ double OptimalAStar(Graph * graph, Vertex * source, Vertex * goal)
 		        t_elapse = (float)(clock() - t_start)/CLOCKS_PER_SEC ;
                 }
                 optimalFile << curLoc->GetX() << "," << curLoc->GetY() << "\n";
-                optimalFile.close() ;
 	}
 	else
 	{
 		cout << "Failed to reach goal vertex!\n" ;
 		cost = DBL_MAX ;
 	}
+        optimalFile.close() ;
 	
 	// Reset edge search costs
 	ResetEdges(graph) ;
@@ -360,11 +374,17 @@ vector<double> executePath(vector< Node*> GSPaths, Graph * searchGraph)
 		<< "Total cost: " << totalCost << endl ;
 	allCosts.push_back(totalCost) ;
 	
+        ragsFile.close() ;
 	newNodes.clear() ;
 	nextVerts.clear() ;
 	
 	/**********************************************************************************************/
 	// Traverse A* path (lowest mean cost path, no adaptivity)
+
+        stringstream aFileName;
+        aFileName << "../results/astarPath" << trialNum << ".txt";
+        ofstream astarFile;
+        astarFile.open(aFileName.str().c_str(), ios::app);
 	double lowestCost = GSPaths[0]->GetMeanCost() ;
 	double lowestCostInd = 0 ;
 	for (int i = 0; i < GSPaths.size(); i++)
@@ -380,6 +400,7 @@ vector<double> executePath(vector< Node*> GSPaths, Graph * searchGraph)
 	totalCost = 0 ; // reset path cost
 	Node * curNode = SGPaths[lowestCostInd] ;
 	curLoc = curNode->GetVertex() ;
+        astarFile << curLoc->GetX() << "," << curLoc->GetY() << "\n";
 	while (curNode->GetParent())
 	{
 		// Identify edge to traverse
@@ -394,11 +415,14 @@ vector<double> executePath(vector< Node*> GSPaths, Graph * searchGraph)
 		curNode = curNode->GetParent() ;
 		curLoc = curNode->GetVertex() ;
 		totalCost += nextVerts[0]->GetCTC() ;
+                astarFile << curLoc->GetX() << "," << curLoc->GetY() << "\n";
 		
 		// Clear vectors for next step
 		newNodes.clear() ;
 		nextVerts.clear() ;
 	}
+
+        astarFile.close();
 	
 	cout << "Goal vertex (" << curLoc->GetX() << "," <<  curLoc->GetY() << ") reached! "
 		<< "Total cost: " << totalCost << endl ;

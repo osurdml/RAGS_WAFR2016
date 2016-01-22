@@ -5,6 +5,7 @@ class Graph
 {
 	public:
 		Graph(vector< vector<double> > vertices, double radius) ;
+		Graph(vector< vector<double> > vertices, double radius, cv::Mat) ;
 		Graph(vector< vector<double> > vertices, vector< vector<double> > edges) ;
 		Graph(vector<double> xGrid, vector<double> yGrid, int connect) ;
 		Graph(vector< vector<bool> > mask, int connect) ;
@@ -30,7 +31,10 @@ class Graph
 		ULONG numEdges ;
 		Vertex ** GenerateVertices(vector< vector<double> > vertices) ;
 		Edge ** GenerateEdges(vector< vector<double> > edges) ;
+                vector < vector < int > > Bresenham(double x1, double y1, double x2, double y2) ;
+                vector < double > CalcMeanVar(vector< int > points) ;
 		vector< vector<double> > RadiusConnect(vector< vector<double> > vertices, double radius) ;
+		vector< vector<double> > RadiusConnect(vector< vector<double> > vertices, double radius, cv::Mat) ;
 		double EuclideanDistance(vector<double> v1, vector<double> v2) ;
 } ;
 
@@ -42,7 +46,14 @@ Graph::Graph(vector< vector<double> > vertices, double radius) // PRM-style grap
 	numVertices = (ULONG)vertices.size() ;
 	numEdges = (ULONG)edges.size() ;
 }
-
+Graph::Graph(vector< vector<double> > vertices, double radius, cv::Mat img) // PRM-style graph connection
+{
+	itsVertices = GenerateVertices(vertices) ;
+	vector< vector<double> > edges = RadiusConnect(vertices, radius, img) ;
+	itsEdges = GenerateEdges(edges) ;
+	numVertices = (ULONG)vertices.size() ;
+	numEdges = (ULONG)edges.size() ;
+}
 Graph::Graph(vector< vector<double> > vertices, vector< vector<double> > edges)
 {
 	itsVertices = GenerateVertices(vertices) ;
@@ -442,6 +453,118 @@ vector< vector<double> > Graph::RadiusConnect(vector< vector<double> > vertices,
 	return edges ;
 }
 
+vector< double > Graph::CalcMeanVar(vector< int > points){
+
+  double sum  = 0, mu = 0, sigma_sq = 0, sdev = 0, dev = 0;
+  sum = accumulate(points.begin(), points.end(), 0.0);
+  mu = sum / points.size();
+  sdev = inner_product(points.begin(), points.end(), points.begin(), 0.0);
+  sigma_sq = sdev/points.size() - mu*mu;
+  vector< double > m_and_v;
+  m_and_v.push_back(mu);
+  m_and_v.push_back(sigma_sq);
+
+  return m_and_v;
+}
+
+vector< vector< int > > Graph::Bresenham(double x1, double y1, double x2, double y2){
+
+        // Bresenham's line algorithm
+        vector< vector< int > > pixels;
+        const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
+        if(steep){
+          std::swap(x1, y1);
+          std::swap(x2, y2);
+        }
+
+        if(x1 > x2){
+          std::swap(x1, x2);
+          std::swap(y1, y2);
+        }
+
+        const float dx = x2 - x1;
+        const float dy = fabs(y2 - y1);
+
+        float error = dx / 2.0f;
+        const int ystep = (y1 < y2) ? 1 : -1;
+        int y = (int)y1;
+
+        const int maxX = (int)x2;
+
+        for(int x=(int)x1; x<maxX; x++){
+          vector < int > tmp;
+          if(steep){
+            tmp.push_back(y);
+            tmp.push_back(x);
+          }
+          else{
+            tmp.push_back(x);
+            tmp.push_back(y);
+          }
+
+          pixels.push_back(tmp); 
+          error -= dy;
+          if(error < 0){
+            y += ystep;
+            error += dx;
+          }
+        }
+        return pixels;
+}
+
+// Connect vertices within specified radius variances based on images
+vector< vector<double> > Graph::RadiusConnect(vector< vector<double> > vertices, double radius, cv::Mat img)
+{
+        cout << "IMAGE RADIUS CONNECT" << endl;
+	srand(time(NULL));
+	vector< vector<double> > edges(pow(vertices.size(),2), vector<double>(4)) ;
+	ULONG k = 0 ;
+	
+	for (ULONG i = 0; i < (ULONG)vertices.size(); i++)
+	{
+		for (ULONG j = 0; j < (ULONG)vertices.size(); j++)
+		{
+			double diff = EuclideanDistance(vertices[i], vertices[j]) ;
+			
+			if (diff <= radius && i != j)
+			{
+                                vector< vector < int > > pixels = Bresenham(vertices[i][0], vertices[i][1], vertices[j][0], vertices[j][1]);
+                                vector< int > color;
+                                for(ULONG z = 0; z < pixels.size(); z++){
+                                      //cout << pixels[z][1] << ", " << pixels[z][0] << endl;
+                                      //cout << int(img.at<cv::Vec3b>(pixels[z][1], pixels[z][0])[0]) << endl;
+                                      color.push_back(double(img.at<unsigned char>(int(pixels[z][1]), int(pixels[z][0]))));
+                                }
+                                vector< double > MandV = CalcMeanVar(color); // change this to pixel values
+                                cout << MandV[0] << ", " << MandV[1] << endl;
+				edges[k][0] = (double)i ;
+				edges[k][1] = (double)j ;
+				edges[k][2] = diff + MandV[0]; //(double)(rand() % 10000)/100.0 ; // EuclideanDistance(vertices[i], vertices[j]) + MandV[0]
+				edges[k][3] = MandV[1]; //(double)(rand() % 2000)/100.0 ; // MandV[1] might need to scale this somehow... maybe based on euclidean distance
+				k++ ;
+			}
+		}
+	}
+	
+	edges.resize(k) ;
+	
+	// Write edges to txt file
+	stringstream eFileName ;
+	eFileName << "../results/edges" << trialNum << ".txt" ;
+	
+	ofstream edgesFile ;
+	edgesFile.open(eFileName.str().c_str()) ;
+	
+	for (ULONG i = 0; i < edges.size(); i++)
+	{
+		edgesFile << edges[i][0] << "," << edges[i][1] << ","
+			<< edges[i][2] << "," << edges[i][3] << "\n" ;
+	}
+	edgesFile.close() ;
+	
+	return edges ;
+}
+
 double Graph::EuclideanDistance(vector<double> v1, vector<double> v2)
 {
 	double diff_x = v1[0] - v2[0] ;
@@ -450,3 +573,4 @@ double Graph::EuclideanDistance(vector<double> v1, vector<double> v2)
 	
 	return diff ;
 }
+

@@ -1,18 +1,36 @@
-CC= g++-4.9
-CFLAGS=-std=c++11 -g -O2
-LDFLAGS=
-SOURCES=main.cpp
-OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=run
+#CC= g++-4.9
+#CFLAGS=-std=c++11 -g -O2
+#LDFLAGS=
+#SOURCES=image_nav.cpp
+#OBJECTS=$(SOURCES:.cpp=.o)
+#EXECUTABLE=run
+#
+#all: clean $(SOURCES) $(EXECUTABLE)
+#
+#$(EXECUTABLE): $(OBJECTS)
+#	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+#
+#%.o: %.cpp
+#	$(CC) $(CFLAGS) $< -c
+#
+#clean:
+#	$(RM) count *.o *~
 
-all: clean $(SOURCES) $(EXECUTABLE)
+# your Makefile
+# compiler
+CC :=g++-4.9
+# include files
+CFLAGS :=-std=c++11 -g -O2 `pkg-config opencv --cflags` `pkg-config opencv --libs`
+LDFLAGS :=
+# compile all c++ files in dir
+SOURCES := image_nav.cpp#$(wildcard *.cpp)
+# C++ files .cpp removed file is executable
+EXECUTABLE :=$(SOURCES:.cpp=)
 
-$(EXECUTABLE): $(OBJECTS)
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+all:$(EXECUTABLE)
 
-%.o: %.cpp
-	$(CC) $(CFLAGS) $< -c
-
-clean:
-	$(RM) count *.o *~
+$(EXECUTABLE):$(SOURCES)
+	$(CC) $< $(LDFLAGS) $(CFLAGS) -o $@
+clean:  
+	rm -rf $(EXECUTABLE)
 

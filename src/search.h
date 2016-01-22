@@ -52,7 +52,7 @@ vector<Node *> Search::PathSearch(pathOut pType)
 	clock_t t_start = clock() ;
 	double t_elapse = 0.0 ;
 	
-	while (!itsQueue->EmptyQueue() && t_elapse < 5)
+	while (!itsQueue->EmptyQueue() && t_elapse < 10)
 	{
 		// Pop cheapest node from queue
 		Node * currentNode = itsQueue->PopQueue() ;

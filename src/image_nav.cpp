@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+#include <vector>
 #include <queue>
 #include <vector>
 #include <functional>
@@ -29,6 +30,14 @@ int trialNum ;
 #include "search.h"
 #include "path.h"
 #include "execute_path.h"
+
+cv::Mat ImportImage(){
+        cv::Mat img = cv::imread("../config/images/image0.png", 0);
+        // imshow( "Display window", img );                   // Show our image inside it.
+        // cv::waitKey(0);                                          // Wait for a keystroke in the window
+        return img;
+}
+
 
 void DefineGraph(vector< vector<double> > & vertVec, vector< vector<double> > & edgeVec) 
 {
@@ -189,17 +198,21 @@ int main()
 
 		// Create graph
 		// Need to  make a vector of vertices or adapt the graph.h file to generate them automatically given a x,y area.
+                cv::Mat img = ImportImage();
+                vector< double > size;
+                size.push_back(img.size().width-1);
+                size.push_back(img.size().height-1);
 		vector< vector< double > > vertVec2;
 		double x, y, radius;
-		int numVerts = 60 ;
-		x = 100;
-		y = 100;
+		x = size[0];
+		y = size[1];
+		int numVerts = 150 ; //int((x*y)/1000) ;
 		cout << "Generating Random Vertices in " << x << " by " << y << endl;
 		vertVec2 = makeVertices(x,y,numVerts);
 		radius = sqrt((6.0/pi)*x*y*(log((double)numVerts)/(double)numVerts)) ;
 		cout << "Connecting with radius " << radius << endl;
 		//Graph * testGraph = new Graph(vertVec, edgeVec) ;
-		Graph * testGraph = new Graph(vertVec2, radius);
+		Graph * testGraph = new Graph(vertVec2, radius, img);
                 //Graph * testGraph = DefineGraph(vertVec2, edgeVec);
 		Vertex * sourceSec = testGraph->GetVertices()[0] ; // top-left sector
 		Vertex * goalSec = testGraph->GetVertices()[testGraph->GetNumVertices()-1] ; // bottom-right sector
@@ -253,7 +266,7 @@ int main()
 		
 		// Execute path
 		vector< double > costs ;
-		int totalStatRuns = 100 ;
+		int totalStatRuns = 1 ;
 		vector< vector< double > > allCosts(totalStatRuns, vector<double>(5)) ;
 
 		for(int numStatRuns = 0; numStatRuns < totalStatRuns; numStatRuns++)
