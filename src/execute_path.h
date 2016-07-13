@@ -158,7 +158,7 @@ double DynamicAStar(Graph * graph, Vertex * source, Vertex * goal) //To avoid lo
         testSearch = 0 ;
 
 	
-	while ((curLoc->GetX() != goal->GetX() || curLoc->GetY() != goal->GetY()) && t_elapse < 5)
+	while ((curLoc->GetX() != goal->GetX() || curLoc->GetY() != goal->GetY()) && t_elapse < 10)
 	{
 		cout << "Current Location: (" << curLoc->GetX() << "," <<  curLoc->GetY() << ")\n" ;
 		
@@ -264,11 +264,127 @@ double OptimalAStar(Graph * graph, Vertex * source, Vertex * goal)
 	return cost ;
 }
 
+double sampledAStar(Graph * graph, Vertex * source, Vertex * goal, double rags_time){
+//      create search object
+//      set edge costs from mean/var
+//      find optimal path
+//      repeat x times
+//      compare paths, choose path most traveled
+	clock_t t_start = clock() ;
+	double t_elapse = 0.0 ;
+        int max_search = 100 ;
+        int count = 0 ;
+        vector< vector<Node *> > sampledPaths ;
+        stringstream oFileName ;
+        oFileName << "../results/sampled" << trialNum << ".txt" ;
+        ofstream sampledFile ;
+        sampledFile.open(oFileName.str().c_str(), ios::app) ;
 
+        // Sample the cost distributions and run A* repeatedly
+        cout << "Searching using Sampled Values... " << endl; 
+        while(t_elapse < rags_time && count < max_search){
+
+                int seed = rand() % 1000000 ;
+	        default_random_engine generator(seed) ;
+                // Search using sampled costs of all edges
+                ULONG numEdges = graph->GetNumEdges() ;
+                for (ULONG i = 0; i < numEdges; i++)
+                {
+                        graph->GetEdges()[i]->SetSampledCost(generator) ;
+                        graph->GetEdges()[i]->SetMeanSearch(graph->GetEdges()[i]->GetSampledCost()) ; //change to the temp values somehow
+                        graph->GetEdges()[i]->SetVarSearch(0.0) ;
+                }
+                
+                //Create search object and perform path search from source to goal
+                Search * testSearch = new Search(graph, source, goal) ;
+                pathOut pType = BEST ;
+                vector<Node *> bestPathsGS = testSearch->PathSearch(pType) ;
+                Node * curNode = bestPathsGS[0]->ReverseList(0) ;
+                Vertex * curLoc = bestPathsGS[0]->GetVertex() ;
+                curLoc = curNode->GetVertex() ;
+                vector< Node * > curPath ;
+                if (bestPathsGS.size() != 0)
+                {
+                        while (curNode->GetParent())
+                        {
+                                //cout << "Current Location: (" << curLoc->GetX() << "," <<  curLoc->GetY() << ")\n" ;
+                                // Move to next vertex and log the cost
+                                curNode = curNode->GetParent() ;
+                                curLoc = curNode->GetVertex() ;
+                                curPath.push_back(curNode) ;
+                        }
+                }
+                else
+                {
+                        cout << "Failed to reach goal vertex!\n" ;
+                }
+                sampledPaths.push_back(curPath) ;
+                
+                // Reset edge search costs
+                ResetEdges(graph) ;
+
+                // Delete pointers on the heap
+                delete testSearch ;
+                testSearch = 0 ;
+                count += 1 ;
+                t_elapse = (float)(clock() - t_start)/CLOCKS_PER_SEC ;
+        }
+
+        int k = sampledPaths.size();
+        int path, max_count = 0;
+        for(int i = 0 ; i < k; i++){
+                int mycount = std::count (sampledPaths.begin(), sampledPaths.end(), sampledPaths[i]);
+                if(mycount > max_count){
+                        path = i;
+                        max_count = mycount;
+                }
+
+        }
+
+
+
+// Need to set true costs and actually traverse graph
+	cout << "Traversing Sampled A* path...\n" ;
+	vector <Vertex *> nextVerts ; // store connected vertices
+	vector <Node *> newNodes ; // store remaining paths, start to goal
+	double totalCost = 0 ; // reset path cost
+	Node * curNode = sampledPaths[path][0] ;
+	Vertex * curLoc = curNode->GetVertex() ;
+        sampledFile << curLoc->GetX() << "," << curLoc->GetY() << "\n";
+	while (curNode->GetParent())
+	{
+		// Identify edge to traverse
+		nextVerts.push_back(curNode->GetParent()->GetVertex()) ;
+		
+		cout << "Current Location: (" << curLoc->GetX() << "," <<  curLoc->GetY() << ")\n" ;
+		
+		// Set cost-to-come for next vertex
+		SetTrueEdgeCosts(curLoc, nextVerts, graph) ;
+		
+		// Move to next vertex and log the cost
+		curNode = curNode->GetParent() ;
+		curLoc = curNode->GetVertex() ;
+		totalCost += nextVerts[0]->GetCTC() ;
+                sampledFile << curLoc->GetX() << "," << curLoc->GetY() << "\n";
+		
+		// Clear vectors for next step
+		newNodes.clear() ;
+		nextVerts.clear() ;
+	}
+        sampledFile.close() ;
+
+        // Reset edge search costs
+        ResetEdges(graph) ;
+
+        cout << "Sampled Cost: " << totalCost << endl;
+        return totalCost ;
+}
 
 
 vector<double> executePath(vector< Node*> GSPaths, Graph * searchGraph)
 {
+	clock_t t_start = clock() ;
+	double rags_t_elapse = 0.0 ;
 	vector <Node *> SGPaths ; // store all paths, start to goal
 	vector <Node *> newNodes, tmpNodes ; // store remaining paths, start to goal
 	vector <Vertex *> nextVerts ; // store connected vertices
@@ -285,7 +401,7 @@ vector<double> executePath(vector< Node*> GSPaths, Graph * searchGraph)
 	
 	/**********************************************************************************************/
 	// Step through paths
-	cout << "Traversing PG search paths..." << endl ;
+	cout << "Traversing RAGS search paths..." << endl ;
 	totalCost = 0 ;
 	Vertex * curLoc = SGPaths[0]->GetVertex() ;
 	Vertex * goal = GSPaths[0]->GetVertex() ;
@@ -378,6 +494,9 @@ vector<double> executePath(vector< Node*> GSPaths, Graph * searchGraph)
 	newNodes.clear() ;
 	nextVerts.clear() ;
 	
+        rags_t_elapse = (float)(clock() - t_start)/CLOCKS_PER_SEC ;
+
+
 	/**********************************************************************************************/
 	// Traverse A* path (lowest mean cost path, no adaptivity)
 
@@ -502,11 +621,20 @@ vector<double> executePath(vector< Node*> GSPaths, Graph * searchGraph)
 	
 	/**********************************************************************************************/
 	// Traverse D* Lite search
-	cout << "Traversing dynamic A* path...\n" ;
-	totalCost = 0 ;
-	totalCost = DynamicAStar(searchGraph, SGPaths[0]->GetVertex(), GSPaths[0]->GetVertex()) ;
-	
-	allCosts.push_back(totalCost) ;
+	//cout << "Traversing dynamic A* path...\n" ;
+	//totalCost = 0 ;
+	//totalCost = DynamicAStar(searchGraph, SGPaths[0]->GetVertex(), GSPaths[0]->GetVertex()) ;
+	//
+	//allCosts.push_back(totalCost) ;
+
+
+        /**********************************************************************************************/
+        //Traverse Sampled A* Search
+	cout << "Traversing Sampled A* path...\n" ;
+        totalCost = 0 ;
+        totalCost = sampledAStar(searchGraph, SGPaths[0]->GetVertex(), GSPaths[0]->GetVertex(), rags_t_elapse) ;
+
+        allCosts.push_back(totalCost) ;
 
 
 	/**********************************************************************************************/

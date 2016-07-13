@@ -17,6 +17,8 @@ class Edge
 		void SetVarCost(double var) {itsVarCost = var ;}
 		double GetTrueCost() {return itsTrueCost ;}
 		void SetTrueCost(default_random_engine generator) ;
+		double GetSampledCost() {return itsSampledCost ;}
+		void SetSampledCost(default_random_engine generator) ;
 		double GetMeanSearch() const {return itsMeanSearch ;}
 		void SetMeanSearch(double cost) {itsMeanSearch = cost ;}
 		double GetVarSearch() const {return itsVarSearch ;}
@@ -27,6 +29,7 @@ class Edge
 		double itsMeanCost ;
 		double itsVarCost ;
 		double itsTrueCost ;
+		double itsSampledCost ;
 		double itsMeanSearch ; // Actual value used in search
 		double itsVarSearch ; // Actual value used in search
 } ;
@@ -58,4 +61,14 @@ void Edge::SetTrueCost(default_random_engine generator)
 	itsTrueCost = distribution(generator) ;
 	if (itsTrueCost < diff)
 		itsTrueCost = diff ;
+}
+void Edge::SetSampledCost(default_random_engine generator)
+{
+	double diff_x = itsVertex1->GetX() - itsVertex2->GetX() ;
+	double diff_y = itsVertex1->GetY() - itsVertex2->GetY() ;
+	double diff = sqrt(pow(diff_x,2) + pow(diff_y,2)) ;
+	normal_distribution<double> distribution(itsMeanCost,itsVarCost) ;
+	itsSampledCost = distribution(generator) ;
+	if (itsSampledCost < diff)
+		itsSampledCost = diff ;
 }

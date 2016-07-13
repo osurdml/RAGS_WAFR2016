@@ -165,22 +165,22 @@ int main()
 	bool loop = true ;
 	while (loop)
 	{
-		/*// Testing on a 4 or 8 connected grid
-		double xMin = 0.0 ;
-		double xInc = 1.0 ;
-		int lenX = 100 ;
-		double yMin = 0.0 ;
-		double yInc = 1.0 ;
-		int lenY = 100 ;
-		vector<double> xGrid(lenX) ;
-		vector<double> yGrid(lenY) ;
-		for (int i = 0; i < lenX; i++)
-			xGrid[i] = xMin + i*xInc ;
+		// Testing on a 4 or 8 connected grid
+		//double xMin = 0.0 ;
+		//double xInc = 1.0 ;
+		//int lenX = 100 ;
+		//double yMin = 0.0 ;
+		//double yInc = 1.0 ;
+		//int lenY = 100 ;
+		//vector<double> xGrid(lenX) ;
+		//vector<double> yGrid(lenY) ;
+		//for (int i = 0; i < lenX; i++)
+		//	xGrid[i] = xMin + i*xInc ;
 
-		for (int i = 0; i < lenY; i++)
-			yGrid[i] = yMin + i*yInc ;
+		//for (int i = 0; i < lenY; i++)
+		//	yGrid[i] = yMin + i*yInc ;
 
-		Graph * testGraph = new Graph(xGrid,yGrid,8) ;*/
+		//Graph * testGraph = new Graph(xGrid,yGrid,8) ;
 
 		// Uncomment to create vectors and edges in graph from text files
 		//vector< vector<double> > vertVec ;
@@ -191,7 +191,7 @@ int main()
 		// Need to  make a vector of vertices or adapt the graph.h file to generate them automatically given a x,y area.
 		vector< vector< double > > vertVec2;
 		double x, y, radius;
-		int numVerts = 60 ;
+		int numVerts = 100 ;
 		x = 100;
 		y = 100;
 		cout << "Generating Random Vertices in " << x << " by " << y << endl;
@@ -240,7 +240,7 @@ int main()
 			pathsFile.close() ;
 		}
 
-		if (bestPaths.size() < 30 || bestPaths.size() > 100)
+		if (bestPaths.size() < 20 || bestPaths.size() > 100)
 		{
 			delete testGraph ;
 			testGraph = 0 ;

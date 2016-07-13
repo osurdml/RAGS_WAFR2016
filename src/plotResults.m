@@ -1,7 +1,7 @@
 clear variables ;
 close all ;
 
-for k = 36
+for k = 135
     data = load(sprintf('../results/pathCosts%d.txt',k)) ;
     diffCost = zeros(size(data)) ;
     

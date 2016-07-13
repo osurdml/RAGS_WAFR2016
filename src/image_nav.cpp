@@ -32,7 +32,7 @@ int trialNum ;
 #include "execute_path.h"
 
 cv::Mat ImportImage(){
-        cv::Mat img = cv::imread("../config/images/image0.png", 0);
+        cv::Mat img = cv::imread("../config/images/city.png", 0);
         // imshow( "Display window", img );                   // Show our image inside it.
         // cv::waitKey(0);                                          // Wait for a keystroke in the window
         return img;

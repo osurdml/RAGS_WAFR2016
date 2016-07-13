@@ -536,11 +536,10 @@ vector< vector<double> > Graph::RadiusConnect(vector< vector<double> > vertices,
                                       color.push_back(double(img.at<unsigned char>(int(pixels[z][1]), int(pixels[z][0]))));
                                 }
                                 vector< double > MandV = CalcMeanVar(color); // change this to pixel values
-                                cout << MandV[0] << ", " << MandV[1] << endl;
 				edges[k][0] = (double)i ;
 				edges[k][1] = (double)j ;
-				edges[k][2] = diff + MandV[0]; //(double)(rand() % 10000)/100.0 ; // EuclideanDistance(vertices[i], vertices[j]) + MandV[0]
-				edges[k][3] = MandV[1]; //(double)(rand() % 2000)/100.0 ; // MandV[1] might need to scale this somehow... maybe based on euclidean distance
+				edges[k][2] = diff * MandV[0]; //(double)(rand() % 10000)/100.0 ; // EuclideanDistance(vertices[i], vertices[j]) + MandV[0]
+				edges[k][3] = MandV[1]*3; //(double)(rand() % 2000)/100.0 ; // MandV[1] might need to scale this somehow... maybe based on euclidean distance
 				k++ ;
 			}
 		}

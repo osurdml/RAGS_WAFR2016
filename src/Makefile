@@ -23,7 +23,7 @@ CC :=g++-4.9
 CFLAGS :=-std=c++11 -g -O2 `pkg-config opencv --cflags` `pkg-config opencv --libs`
 LDFLAGS :=
 # compile all c++ files in dir
-SOURCES := image_nav.cpp#$(wildcard *.cpp)
+SOURCES := main.cpp#$(wildcard *.cpp)
 # C++ files .cpp removed file is executable
 EXECUTABLE :=$(SOURCES:.cpp=)
 
