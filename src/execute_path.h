@@ -274,7 +274,7 @@ double sampledAStar(Graph * graph, Vertex * source, Vertex * goal, double rags_t
 	double t_elapse = 0.0 ;
         int max_search = 100 ;
         int count = 0 ;
-        vector< vector<Node *> > sampledPaths ;
+        vector< vector<Vertex *> > sampledPaths ;
         stringstream oFileName ;
         oFileName << "../results/sampled" << trialNum << ".txt" ;
         ofstream sampledFile ;
@@ -302,7 +302,7 @@ double sampledAStar(Graph * graph, Vertex * source, Vertex * goal, double rags_t
                 Node * curNode = bestPathsGS[0]->ReverseList(0) ;
                 Vertex * curLoc = bestPathsGS[0]->GetVertex() ;
                 curLoc = curNode->GetVertex() ;
-                vector< Node * > curPath ;
+                vector< Vertex * > curPath ;
                 if (bestPathsGS.size() != 0)
                 {
                         while (curNode->GetParent())
@@ -311,7 +311,7 @@ double sampledAStar(Graph * graph, Vertex * source, Vertex * goal, double rags_t
                                 // Move to next vertex and log the cost
                                 curNode = curNode->GetParent() ;
                                 curLoc = curNode->GetVertex() ;
-                                curPath.push_back(curNode) ;
+                                curPath.push_back(curLoc) ;
                         }
                 }
                 else
@@ -340,37 +340,32 @@ double sampledAStar(Graph * graph, Vertex * source, Vertex * goal, double rags_t
                 }
 
         }
+        cout << "SAME PATHS  " << max_count << endl;
 
 
 
+	double totalCost = 0 ; // reset path cost
 // Need to set true costs and actually traverse graph
 	cout << "Traversing Sampled A* path...\n" ;
-	vector <Vertex *> nextVerts ; // store connected vertices
-	vector <Node *> newNodes ; // store remaining paths, start to goal
-	double totalCost = 0 ; // reset path cost
-	Node * curNode = sampledPaths[path][0] ;
-	Vertex * curLoc = curNode->GetVertex() ;
-        sampledFile << curLoc->GetX() << "," << curLoc->GetY() << "\n";
-	while (curNode->GetParent())
-	{
-		// Identify edge to traverse
-		nextVerts.push_back(curNode->GetParent()->GetVertex()) ;
-		
-		cout << "Current Location: (" << curLoc->GetX() << "," <<  curLoc->GetY() << ")\n" ;
-		
-		// Set cost-to-come for next vertex
-		SetTrueEdgeCosts(curLoc, nextVerts, graph) ;
-		
-		// Move to next vertex and log the cost
-		curNode = curNode->GetParent() ;
-		curLoc = curNode->GetVertex() ;
-		totalCost += nextVerts[0]->GetCTC() ;
-                sampledFile << curLoc->GetX() << "," << curLoc->GetY() << "\n";
-		
-		// Clear vectors for next step
-		newNodes.clear() ;
-		nextVerts.clear() ;
-	}
+        Vertex * previous_v = source ;//sampledPaths[path][0];
+	Edge ** edges = graph->GetEdges() ;
+	ULONG numEdges = graph->GetNumEdges() ;
+
+        for(int i = 0; i < sampledPaths[path].size(); i++){
+                // find edge
+                cout << "Current Location: " << previous_v->GetX() << " " << previous_v->GetY() << endl;
+                cout << "Next Location: " << sampledPaths[path][i]->GetX() << " " << sampledPaths[path][i]->GetY() << endl;
+                for(int j = 0; j < numEdges; j ++){
+                        if(edges[j]->IsEdge(previous_v, sampledPaths[path][i])){
+                              cout << "YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
+                              previous_v = sampledPaths[path][i];
+                              totalCost += edges[j]->GetTrueCost();
+                              break;
+                        }
+                }
+        }
+
+
         sampledFile.close() ;
 
         // Reset edge search costs

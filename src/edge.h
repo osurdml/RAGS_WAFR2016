@@ -23,6 +23,7 @@ class Edge
 		void SetMeanSearch(double cost) {itsMeanSearch = cost ;}
 		double GetVarSearch() const {return itsVarSearch ;}
 		void SetVarSearch(double var) {itsVarSearch = var ;}
+		bool IsEdge(Vertex * v1, Vertex * v2);
 	private:
 		Vertex * itsVertex1 ;
 		Vertex * itsVertex2 ;
@@ -71,4 +72,13 @@ void Edge::SetSampledCost(default_random_engine generator)
 	itsSampledCost = distribution(generator) ;
 	if (itsSampledCost < diff)
 		itsSampledCost = diff ;
+}
+
+bool Edge::IsEdge(Vertex * vertex1, Vertex * vertex2){
+        if(vertex1->GetX() == itsVertex1->GetX() &&  vertex1->GetY() == itsVertex1->GetY() && vertex2->GetX() == itsVertex2->GetX() &&  vertex2->GetY() == itsVertex2->GetY()){
+          return true;
+        }
+        else{
+          return false;
+        }
 }
