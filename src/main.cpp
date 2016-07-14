@@ -191,7 +191,7 @@ int main()
 		// Need to  make a vector of vertices or adapt the graph.h file to generate them automatically given a x,y area.
 		vector< vector< double > > vertVec2;
 		double x, y, radius;
-		int numVerts = 100 ;
+		int numVerts = 75 ;
 		x = 100;
 		y = 100;
 		cout << "Generating Random Vertices in " << x << " by " << y << endl;
@@ -211,8 +211,31 @@ int main()
 
 		cout << "Performing path search from (" <<  sourceSec->GetX() << "," << sourceSec->GetY() << ") to (" ;
 		cout << goalSec->GetX() << "," << goalSec->GetY() << ")...\n" ;
+                pathOut pTypeCheck = BEST ;
+                
+                // Log initial search time
+                double t_elapse = 0.0 ;
+                clock_t t_start = clock() ;
+                vector<Node *> bestPathSingle = testSearch->PathSearch(pTypeCheck) ;
+                t_elapse = (float)(clock() - t_start)/CLOCKS_PER_SEC ;
+                
+                // Write to txt file
+                stringstream sFileName ;
+                sFileName << "../results/searchTime" << trialNum << ".txt" ;
+                ofstream searchFile ;
+                searchFile.open(sFileName.str().c_str()) ;          
+                
+                searchFile << "Best path search time: " << t_elapse << "\n" ;
+
+
 		pathOut pType = ALL ;
+                // Log non-dominated path set search time
+                t_start = clock() ;
 		vector<Node *> bestPaths = testSearch->PathSearch(pType) ;
+                t_elapse = (float)(clock() - t_start)/CLOCKS_PER_SEC ;
+                
+                searchFile << "Non-dominated path set search time: " << t_elapse ;
+                searchFile.close() ;
 		cout << "Path search complete, " << bestPaths.size() << " paths found.\n" ;
 
 		// Write paths to file
@@ -254,7 +277,9 @@ int main()
 		// Execute path
 		vector< double > costs ;
 		int totalStatRuns = 100 ;
-		vector< vector< double > > allCosts(totalStatRuns, vector<double>(5)) ;
+                // allCosts <RAGS cost, RAGS time, naive A* cost, naive A* time, greedy cost, greedy time, sampled A* cost, sampled A* time, hindsight optimal cost> 
+
+		vector< vector< double > > allCosts(totalStatRuns, vector<double>(9)) ;
 
 		for(int numStatRuns = 0; numStatRuns < totalStatRuns; numStatRuns++)
 		{
@@ -265,26 +290,35 @@ int main()
 			AssignTrueEdgeCosts(testGraph, numStatRuns+1) ;
 			//AssignTrueEdgeCosts(testGraph, seed+1) ;
 			
-			costs = executePath(bestPaths, testGraph);
+			costs = executePath(bestPaths, testGraph, t_elapse);
 			allCosts[numStatRuns] = costs ;
 		}
+                // Write costs and computation times to txt file
+                stringstream cFileName ;
+                stringstream tFileName ;
+                cFileName << "../results/pathCosts" << trialNum << ".txt" ;
+                tFileName << "../results/compTime" << trialNum << ".txt" ;
+                
+                ofstream costsFile ;
+                ofstream timeFile ;
+                costsFile.open(cFileName.str().c_str()) ;
+                timeFile.open(tFileName.str().c_str()) ;
 
-		// Write vertices to txt file
-		stringstream cFileName ;
-		cFileName << "../results/pathCosts" << trialNum << ".txt" ;
-		
-		ofstream costsFile ;
-		costsFile.open(cFileName.str().c_str()) ;
 		
 		for (ULONG i = 0; i < allCosts.size(); i++)
 		{
 			for (int j = 0; j < allCosts[i].size(); j++)
 			{
-				costsFile << allCosts[i][j] << "," ;
+                                if ( j%2 == 0)
+                                        costsFile << allCosts[i][j] << "," ;
+                                else
+                                        timeFile << allCosts[i][j] << "," ;
 			}
 			costsFile << "\n" ;
+                        timeFile << "\n" ;
 		}
 		costsFile.close() ;
+                timeFile.close() ;
 
 		/*//Read in membership and obstacle text files
 		vector< vector<bool> > obstacles ;
