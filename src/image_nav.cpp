@@ -224,6 +224,17 @@ int main()
 
 		cout << "Performing path search from (" <<  sourceSec->GetX() << "," << sourceSec->GetY() << ") to (" ;
 		cout << goalSec->GetX() << "," << goalSec->GetY() << ")...\n" ;
+                pathout pTypeCheck = BEST ; 
+
+
+                // Log initial search time
+
+
+
+
+
+
+
 		pathOut pType = ALL ;
 		vector<Node *> bestPaths = testSearch->PathSearch(pType) ;
 		cout << "Path search complete, " << bestPaths.size() << " paths found.\n" ;

@@ -413,6 +413,15 @@ Edge ** Graph::GenerateEdges(vector< vector<double> > edges)
 // Connect vertices within specified radius
 vector< vector<double> > Graph::RadiusConnect(vector< vector<double> > vertices, double radius)
 {
+        int eVar = 2000.0;
+        // Write Configuration
+        stringstream vFileName ;
+        vFileName << "../results/config" << trialNum << ".txt" ;
+        ofstream confFile ;
+        confFile.open(vFileName.str().c_str(), std::ios_base::app) ;
+
+        confFile << "Max Edge Var: " << eVar/100 << "\n";
+
 	srand(time(NULL));
 	vector< vector<double> > edges(pow(vertices.size(),2), vector<double>(4)) ;
 	ULONG k = 0 ;
@@ -428,7 +437,7 @@ vector< vector<double> > Graph::RadiusConnect(vector< vector<double> > vertices,
 				edges[k][0] = (double)i ;
 				edges[k][1] = (double)j ;
 				edges[k][2] = diff + (double)(rand() % 10000)/100.0 ;
-				edges[k][3] = (double)(rand() % 3000)/100.0 ; // 0.0 ;
+				edges[k][3] = (double)(rand() % eVar)/100.0 ; // 0.0 ;
 				k++ ;
 			}
 		}
@@ -539,7 +548,7 @@ vector< vector<double> > Graph::RadiusConnect(vector< vector<double> > vertices,
 				edges[k][0] = (double)i ;
 				edges[k][1] = (double)j ;
 				edges[k][2] = diff * MandV[0]; //(double)(rand() % 10000)/100.0 ; // EuclideanDistance(vertices[i], vertices[j]) + MandV[0]
-				edges[k][3] = MandV[1]*3; //(double)(rand() % 2000)/100.0 ; // MandV[1] might need to scale this somehow... maybe based on euclidean distance
+				edges[k][3] = MandV[1]*10; //(double)(rand() % 2000)/100.0 ; // MandV[1] might need to scale this somehow... maybe based on euclidean distance
 				k++ ;
 			}
 		}

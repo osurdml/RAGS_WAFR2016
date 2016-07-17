@@ -163,6 +163,16 @@ int main()
 	
 	srand(time(NULL));
 	bool loop = true ;
+	int numVerts = 200 ;
+
+        // Write Configuration
+        stringstream vFileName ;
+        vFileName << "../results/config" << trialNum << ".txt" ;
+        ofstream confFile ;
+        confFile.open(vFileName.str().c_str()) ;
+
+        confFile << "Graph " << "\n" << "numVerts: " << numVerts << "\n";
+        confFile.close();
 	while (loop)
 	{
 		// Testing on a 4 or 8 connected grid
@@ -189,9 +199,11 @@ int main()
 
 		// Create graph
 		// Need to  make a vector of vertices or adapt the graph.h file to generate them automatically given a x,y area.
+
+
+
 		vector< vector< double > > vertVec2;
 		double x, y, radius;
-		int numVerts = 75 ;
 		x = 100;
 		y = 100;
 		cout << "Generating Random Vertices in " << x << " by " << y << endl;
@@ -284,11 +296,11 @@ int main()
 		for(int numStatRuns = 0; numStatRuns < totalStatRuns; numStatRuns++)
 		{
 			// Randomly select seed
-			//int seed = rand() % 1000000 ;
+			int seed = rand() % 1000000 ;
 			
 			// Assign true edge costs
-			AssignTrueEdgeCosts(testGraph, numStatRuns+1) ;
-			//AssignTrueEdgeCosts(testGraph, seed+1) ;
+			//AssignTrueEdgeCosts(testGraph, numStatRuns+1) ;
+			AssignTrueEdgeCosts(testGraph, seed+1) ;
 			
 			costs = executePath(bestPaths, testGraph, t_elapse);
 			allCosts[numStatRuns] = costs ;
@@ -344,5 +356,6 @@ int main()
 		//delete goalPath ;
 		//goalPath = 0 ;
 	}
+                cout << "Trial Number: " << trialNum << " Completed" << endl;
 	return 0 ;
 }

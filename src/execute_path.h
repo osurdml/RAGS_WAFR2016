@@ -268,7 +268,7 @@ double sampledAStar(Graph * graph, Vertex * source, Vertex * goal, double rags_t
 //      Sampled A* search based on most frequent path chosen
 	clock_t t_start = clock() ;
 	double t_elapse = 0.0 ;
-        int max_search = 100 ;
+        int max_search = 1000 ;
         int p_count = 0 ;
         vector< vector<Vertex *> > sampledPaths ;
         stringstream oFileName ;
