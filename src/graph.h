@@ -548,7 +548,7 @@ vector< vector<double> > Graph::RadiusConnect(vector< vector<double> > vertices,
 				edges[k][0] = (double)i ;
 				edges[k][1] = (double)j ;
 				edges[k][2] = diff * MandV[0]; //(double)(rand() % 10000)/100.0 ; // EuclideanDistance(vertices[i], vertices[j]) + MandV[0]
-				edges[k][3] = MandV[1]*10; //(double)(rand() % 2000)/100.0 ; // MandV[1] might need to scale this somehow... maybe based on euclidean distance
+				edges[k][3] = MandV[1]*20; //(double)(rand() % 2000)/100.0 ; // MandV[1] might need to scale this somehow... maybe based on euclidean distance
 				k++ ;
 			}
 		}

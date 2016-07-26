@@ -163,7 +163,7 @@ int main()
 	
 	srand(time(NULL));
 	bool loop = true ;
-	int numVerts = 200 ;
+	int numVerts = 100 ;
 
         // Write Configuration
         stringstream vFileName ;

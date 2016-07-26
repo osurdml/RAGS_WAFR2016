@@ -360,6 +360,7 @@ double sampledAStar(Graph * graph, Vertex * source, Vertex * goal, double rags_t
                 }
         }
 
+        sampledFile <<  p_count << ", " <<  max_count << "\n"; 
 
         sampledFile.close() ;
 
