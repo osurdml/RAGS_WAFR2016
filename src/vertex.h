@@ -14,8 +14,12 @@ class Vertex
 		void SetCTC(double cost_to_come) {itsCTC = cost_to_come ;}
 		void SetNodes(vector<Node *> NewNodes) {itsNodes = NewNodes ;}
 		vector<Node *> GetNodes() {return itsNodes ;}
-		double SetActualCost(double ac) {itsActualCost = ac;}
+		void SetActualCost(double ac) {itsActualCost = ac;}
 		double GetActualCost() const {return itsActualCost ;}
+		void SetCV0Mean(double mu){cV0[0] = mu ;}
+		double GetCV0Mean(){return cV0[0] ;}
+		void SetCV0Var(double var){cV0[1] = var ;}
+		double GetCV0Var(){return cV0[1] ;}
 
 
 	private:
@@ -23,6 +27,7 @@ class Vertex
 		double itsX ;
 		double itsY ;
 		double itsCTC ;
+		vector<double> cV0 ;
 		vector<Node *> itsNodes ;
 };
 
@@ -30,4 +35,6 @@ Vertex::Vertex(double x, double y)
 {
 	itsX = x ;
 	itsY = y ;
+	cV0.push_back(0.0) ;
+	cV0.push_back(0.0) ;
 }

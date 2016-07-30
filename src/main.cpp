@@ -275,7 +275,7 @@ int main()
 			pathsFile.close() ;
 		}
 
-		if (bestPaths.size() < 20 || bestPaths.size() > 100)
+		if (bestPaths.size() < 20 || bestPaths.size() > 500)
 		{
 			delete testGraph ;
 			testGraph = 0 ;
@@ -288,7 +288,7 @@ int main()
 		
 		// Execute path
 		vector< double > costs ;
-		int totalStatRuns = 100 ;
+		int totalStatRuns = 1 ;
                 // allCosts <RAGS cost, RAGS time, naive A* cost, naive A* time, greedy cost, greedy time, sampled A* cost, sampled A* time, hindsight optimal cost> 
 
 		vector< vector< double > > allCosts(totalStatRuns, vector<double>(9)) ;
@@ -300,37 +300,39 @@ int main()
 			
 			// Assign true edge costs
 			//AssignTrueEdgeCosts(testGraph, numStatRuns+1) ;
-			AssignTrueEdgeCosts(testGraph, seed+1) ;
-			
-			costs = executePath(bestPaths, testGraph, t_elapse);
-			allCosts[numStatRuns] = costs ;
+//			AssignTrueEdgeCosts(testGraph, seed+1) ;
+//			
+//			costs = executePath(bestPaths, testGraph, t_elapse);
+//			allCosts[numStatRuns] = costs ;
+    
+      executeNonDynamicRAGS(bestPaths, testGraph);
 		}
-                // Write costs and computation times to txt file
-                stringstream cFileName ;
-                stringstream tFileName ;
-                cFileName << "../results/pathCosts" << trialNum << ".txt" ;
-                tFileName << "../results/compTime" << trialNum << ".txt" ;
-                
-                ofstream costsFile ;
-                ofstream timeFile ;
-                costsFile.open(cFileName.str().c_str()) ;
-                timeFile.open(tFileName.str().c_str()) ;
+//                // Write costs and computation times to txt file
+//                stringstream cFileName ;
+//                stringstream tFileName ;
+//                cFileName << "../results/pathCosts" << trialNum << ".txt" ;
+//                tFileName << "../results/compTime" << trialNum << ".txt" ;
+//                
+//                ofstream costsFile ;
+//                ofstream timeFile ;
+//                costsFile.open(cFileName.str().c_str()) ;
+//                timeFile.open(tFileName.str().c_str()) ;
 
-		
-		for (ULONG i = 0; i < allCosts.size(); i++)
-		{
-			for (int j = 0; j < allCosts[i].size(); j++)
-			{
-                                if ( j%2 == 0)
-                                        costsFile << allCosts[i][j] << "," ;
-                                else
-                                        timeFile << allCosts[i][j] << "," ;
-			}
-			costsFile << "\n" ;
-                        timeFile << "\n" ;
-		}
-		costsFile.close() ;
-                timeFile.close() ;
+//		
+//		for (ULONG i = 0; i < allCosts.size(); i++)
+//		{
+//			for (int j = 0; j < allCosts[i].size(); j++)
+//			{
+//                                if ( j%2 == 0)
+//                                        costsFile << allCosts[i][j] << "," ;
+//                                else
+//                                        timeFile << allCosts[i][j] << "," ;
+//			}
+//			costsFile << "\n" ;
+//                        timeFile << "\n" ;
+//		}
+//		costsFile.close() ;
+//                timeFile.close() ;
 
 		/*//Read in membership and obstacle text files
 		vector< vector<bool> > obstacles ;

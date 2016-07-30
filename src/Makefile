@@ -18,7 +18,7 @@
 
 # your Makefile
 # compiler
-CC :=g++-4.9
+CC :=g++-4.8
 # include files
 CFLAGS :=-std=c++11 -g -O2 `pkg-config opencv --cflags` `pkg-config opencv --libs`
 LDFLAGS :=

@@ -668,3 +668,158 @@ vector<double> executePath(vector< Node*> GSPaths, Graph * searchGraph, double t
 	return allCosts ;
 	
 }
+
+bool ComputeImprovementProbabilityNonDynamic(Vertex * A, Vertex * B)
+{
+	vector<Node *> ANodes = A->GetNodes();
+	vector<Node *> BNodes = B->GetNodes();
+	double muA = A->GetCV0Mean() ;
+	double varA = A->GetCV0Var() ;
+	double muB = B->GetCV0Mean() ;
+	double varB = B->GetCV0Var() ;
+	
+	double max_3sig = ANodes[0]->GetMeanCTG() + muA + 3*(ANodes[0]->GetVarCTG() + varA) ;
+	double min_3sig = ANodes[0]->GetMeanCTG() + muA - 3*(ANodes[0]->GetVarCTG() + varA) ;
+	for (int i = 0; i < ANodes.size(); i++)
+	{
+		if (max_3sig < ANodes[i]->GetMeanCTG() + muA + 3*(ANodes[i]->GetVarCTG() + varA))
+			max_3sig = ANodes[i]->GetMeanCTG() + muA + 3*(ANodes[i]->GetVarCTG() + varA) ;
+		if (min_3sig > ANodes[i]->GetMeanCTG() + muA - 3*(ANodes[i]->GetVarCTG() + varA))
+			min_3sig = ANodes[i]->GetMeanCTG() + muA - 3*(ANodes[i]->GetVarCTG() + varA) ;
+	}
+	for (int i = 0; i < BNodes.size(); i++)
+	{
+		if (max_3sig < BNodes[i]->GetMeanCTG() + muB + 3*(BNodes[i]->GetVarCTG() + varB))
+			max_3sig = BNodes[i]->GetMeanCTG() + muB + 3*(BNodes[i]->GetVarCTG() + varB) ;
+		if (min_3sig > BNodes[i]->GetMeanCTG() + muB - 3*(BNodes[i]->GetVarCTG() + varB))
+			min_3sig = BNodes[i]->GetMeanCTG() + muB - 3*(BNodes[i]->GetVarCTG() + varB) ;
+	}
+	
+	int n = 10000 ;
+	vector<double> x = linspace(min_3sig,max_3sig,n) ;
+	double dx = x[1]-x[0] ;
+	double pImprove = 0.0 ;
+	for (int k = 0; k < x.size(); k++)
+	{
+		double p_cAi = 0.0 ;
+		for (int i = 0; i < ANodes.size(); i++)
+		{
+			double mu_Ai = ANodes[i]->GetMeanCTG() + muA ;
+			double sig_Ai = ANodes[i]->GetVarCTG() + varA ;
+			double p_cA1 = (1/(sig_Ai*sqrt(2*pi)))*exp(-(pow(x[k]-mu_Ai,2))/(2*pow(sig_Ai,2))) ;
+			double p_cA2 = 1.0 ;
+			for (int j = 0; j < ANodes.size(); j++)
+			{
+				double mu_Aj = ANodes[j]->GetMeanCTG() + muA ;
+				double sig_Aj = ANodes[j]->GetVarCTG() + varA ;
+				if (j != i)
+					p_cA2 *= 0.5*erfc((x[k]-mu_Aj)/(sig_Aj*sqrt(2))) ;
+			}
+			p_cAi += p_cA1*p_cA2 ;
+		}
+		double p_cBi = 1.0 ;
+		for (int i = 0; i < BNodes.size(); i++)
+		{
+			double mu_Bi = BNodes[i]->GetMeanCTG() + muB ;
+			double sig_Bi = BNodes[i]->GetVarCTG() + varB ;
+			p_cBi *= 0.5*erfc((x[k]-mu_Bi)/(sig_Bi*sqrt(2))) ;
+		}
+		pImprove += (p_cAi)*(1-p_cBi)*dx ;
+	}
+	
+	return (pImprove<=0.5);
+}
+
+void executeNonDynamicRAGS(vector< Node*> GSPaths, Graph * searchGraph){
+	vector <Node *> SGPaths ; // store all paths, start to goal
+	vector <Node *> newNodes, tmpNodes ; // store remaining paths, start to goal
+	vector <Vertex *> nextVerts ; // store connected vertices
+	vector<double> allCosts ; // store costs of PGsearch, A*, D* searches
+	double totalCost = 0 ; // store total cost
+	
+	// Set linked list from start node to goal node
+	for(int i = 0; i < GSPaths.size(); i++)
+		SGPaths.push_back(GSPaths[i]->ReverseList(0));
+	
+	// Compute cost-to-go for all path nodes
+	for(int i = 0; i < SGPaths.size(); i++)
+		SGPaths[i]->SetCTG(GSPaths[i]->GetMeanCost(),GSPaths[i]->GetVarCost()) ;
+		
+  /**********************************************************************************************/
+	// Step through RAGS non-dynamic path
+	cout << "Traversing non-dynamic RAGS path..." << endl ;
+	Vertex * curLoc = SGPaths[0]->GetVertex() ;
+	Vertex * goal = GSPaths[0]->GetVertex() ;
+	newNodes = SGPaths ;
+
+	// Assign nodes to first vertex
+	curLoc->SetNodes(newNodes) ;
+  stringstream rFileName;
+  rFileName << "../results/ragsPathNonDynamic" << trialNum << ".txt";
+  ofstream ragsFileNonDyanmic;
+  ragsFileNonDyanmic.open(rFileName.str().c_str(), ios::app);
+	
+	while (curLoc->GetX() != goal->GetX() || curLoc->GetY() != goal->GetY())
+	{
+		cout << "Current Location: (" << curLoc->GetX() << "," <<  curLoc->GetY() << ")\n" ;
+		
+		// Extract nodes of current vertex
+		newNodes = curLoc->GetNodes() ;
+		
+		// Identify next vertices
+		for (int i = 0; i < newNodes.size(); i++)
+		{
+		  double CTGMu = newNodes[i]->GetMeanCTG() ;
+		  double CTGVar = newNodes[i]->GetVarCTG() ;
+			bool newVert = true ;
+			for (int j = 0; j < nextVerts.size(); j++)
+			{
+				if ((nextVerts[j]->GetX() == newNodes[i]->GetParent()->GetVertex()->GetX() &&
+					nextVerts[j]->GetY() == newNodes[i]->GetParent()->GetVertex()->GetY()) ||
+					(nextVerts[j]->GetX() == curLoc->GetX() && nextVerts[j]->GetY() == curLoc->GetY()))
+				{
+					newVert = false ;
+					break ;
+				}
+			}
+			if (newVert){
+				double diffMu = CTGMu - newNodes[i]->GetParent()->GetMeanCTG() ;
+				double diffVar = CTGVar - newNodes[i]->GetParent()->GetVarCTG() ;
+				newNodes[i]->GetParent()->GetVertex()->SetCV0Mean(diffMu) ;
+				newNodes[i]->GetParent()->GetVertex()->SetCV0Var(diffVar) ;
+				nextVerts.push_back(newNodes[i]->GetParent()->GetVertex()) ;
+			}
+		}
+		
+		// Identify next vertex path nodes
+		for (int i = 0; i < nextVerts.size(); i++)
+		{
+			tmpNodes.clear() ;
+			for (int j = 0; j < newNodes.size(); j++)
+			{
+				if (nextVerts[i]->GetX() == newNodes[j]->GetParent()->GetVertex()->GetX() &&
+					nextVerts[i]->GetY() == newNodes[j]->GetParent()->GetVertex()->GetY())
+					tmpNodes.push_back(newNodes[j]->GetParent()) ;
+			}
+			nextVerts[i]->SetNodes(tmpNodes) ;
+		}
+		
+		// Rank next vertices according to probability of improvement
+		sort(nextVerts.begin(),nextVerts.end(),ComputeImprovementProbabilityNonDynamic) ;
+		
+		// Move to best vertex and log the cost
+		curLoc = nextVerts[0] ;
+		
+		// Clear vectors for next step
+		newNodes.clear() ;
+		nextVerts.clear() ;
+
+    //write loc to file
+    ragsFileNonDyanmic << curLoc->GetX()<< "," << curLoc->GetY() << "\n";
+              
+	}
+
+  ragsFileNonDyanmic.close() ;
+	newNodes.clear() ;
+	nextVerts.clear() ;
+}
